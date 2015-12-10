@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Wells Fargo 2015 Campus Analytics Challenge by katiebalcewicz</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Wells Fargo 2015 Campus Analytics Challenge</h1>
+        <h2></h2>
+        <a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <p>For the 2015 Wells Fargo Campus Analytics Challenge, students were asked to analyze a set of 220,377 anonymized social media posts to gain new insights into how customers discuss banking topics. More information about the challenge can be found on <a href="https://www.mindsumo.com/contests/wells-fargo">MindSumo</a>. For our solution, we used the R programming language to explore the data, classify the posts into categories, and analyze the sentiment of each post. The code and the other materials used in the solution can be found at <a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge">github.com/katiebalcewicz/2015-Campus-Analytics-Challenge</a>.  </p>
+
+<h1>
+<a id="structuring-the-data" class="anchor" href="#structuring-the-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Structuring the Data</h1>
+
+<p>The raw data that we were given was in a pipe-delimited text file that was easily read into a data frame. </p>
+
+<pre><code>   #Use the setwd() command to set the working directory to the folder that contains the dataset
+   setwd("~/R/Wells Fargo Competition")
+   #Create a Data Frame from the text file
+   df = read.table('dataset.txt',sep="|",header=T)
+</code></pre>
+
+<p>The first five columns were clean and easy to analyze. The sixth column held the anonymized text of the social media post, which was very messy.</p>
+
+<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/initial%20data%20frame.png" alt="Initial Data Frame"></p>
+
+<p>In order to convert the data into a usable, structured format, we added columns to the data frame containing cleaned text, bank mentions, and sentiment scores.</p>
+
+<h2>
+<a id="cleaning-the-data" class="anchor" href="#cleaning-the-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cleaning the Data</h2>
+
+<p>The first step in structuring the data was cleaning it so that it could be analyzed. </p>
+
+<h3>
+<a id="removing-non-ascii-characters" class="anchor" href="#removing-non-ascii-characters" aria-hidden="true"><span class="octicon octicon-link"></span></a>Removing non-ASCII Characters</h3>
+
+<p>Some functions in the R packages we used did not like non-ASCII characters. The first step was to remove them from <code>FullText</code>. We defined a function called <code>removeOffendingCharacters</code> that scans through each post and replaces non-ASCII characters with "". Calling this function removes all non-ASCII characters from the <code>FullText</code> column.</p>
+
+<pre><code>   removeOffendingCharacters = function(df)
+   {
+     df.texts.clean = as.data.frame(iconv(df$FullText, "latin1", "ASCII", sub=""))
+     colnames(df.texts.clean) = 'FullText'
+     df$FullText = df.texts.clean$FullText
+     return(df)
+   }
+</code></pre>
+
+<h3>
+<a id="cleaning-the-text" class="anchor" href="#cleaning-the-text" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cleaning the Text</h3>
+
+<p>We made several other modifications to the text so that it was easier for us to analyze. These include:</p>
+
+<ul>
+<li>Stripping extra whitespace</li>
+<li>Converting all letters to lowercase</li>
+<li>Removing stopwords (filler words that do not contribute to the essential meaning of the sentence, such as "she", "this", and "with".
+*Removing numbers
+*Removing all punctuation except '_'</li>
+</ul>
+
+<p>We again defined a function that makes these modifications. This function converts the <code>FullText</code> column into a corpus and applies several of the functions from the tm package to clean the text before converting it back into a data frame. This is then added to the main data frame in a new column called <code>FullTextClean</code>.</p>
+
+<pre><code>   cleanText = function(df)
+   {
+     require(tm)
+     docs = Corpus(VectorSource(df$FullText))
+     docs = tm_map(docs, stripWhitespace)
+     docs = tm_map(docs, tolower) 
+     docs = tm_map(docs, removeWords, stopwords("english"))  
+     docs = tm_map(docs, removeNumbers)   
+     docs = tm_map(docs, PlainTextDocument)
+     removeSomePunct = function(x) gsub("[^[:alnum:][:blank:]_]", "", x)
+     docs = tm_map(docs, content_transformer(removeSomePunct))
+     docs = tm_map(docs, stripWhitespace)  
+     docs = tm_map(docs, PlainTextDocument)
+
+     df.texts.cleaner = data.frame(text=unlist(sapply(docs, `[`, "content")), stringsAsFactors=F)
+     colnames(df.texts.cleaner) = 'FullText'
+     df$FullTextClean = df.texts.cleaner$FullText
+     return(df)
+   }
+</code></pre>
+
+<h3>
+<a id="stemming-the-words" class="anchor" href="#stemming-the-words" aria-hidden="true"><span class="octicon octicon-link"></span></a>Stemming the words</h3>
+
+<p>"Stemming" is a process by which all words that have the same stem (such as "analyze", "analyzed", and "analyzing") are all converted to the same stem ("analyz"). This allows us to treat each of these words as the same when we analyze the data. We defined a function that applies this process to the <code>FullTextClean</code> column and adds the results to the main data frame in a new column called <code>FullTextStemmed</code>.</p>
+
+<pre><code>   stemText = function(df)
+   {
+     require(tm)
+     require(SnowballC)
+     docs = Corpus(VectorSource(df$FullTextClean))
+     docs = tm_map(docs, stemDocument)
+     docs = tm_map(docs, PlainTextDocument)
+     df.texts.cleaner = data.frame(text=unlist(sapply(docs, `[`, "content")), stringsAsFactors=F)
+     colnames(df.texts.cleaner) = 'FullText'
+     df$FullTextStemmed = df.texts.cleaner$FullText
+     return(df)
+   }
+</code></pre>
+
+<h3>
+<a id="stem-completion" class="anchor" href="#stem-completion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Stem Completion</h3>
+
+<p>Stem Completion converts the stems from the previous step ("analyz") back into a dictionary word ("analyze"). Unfortunately, this algorithm was too computationally intensive to apply to the full dataset. We designed this function to use multithreading in the hopes that we might get the chance to run the code on a computer with more cores. If you were to run this function, it would add another column to the main data frame called <code>FullTextCompleted</code>.</p>
+
+<pre><code>   stemCompleteText = function(df)
+   {
+     require(plyr)
+     require(doMC)
+     require(tm)
+     doMC::registerDoMC(cores=3) #Change the number of threads here to match your machine.
+     docs = Corpus(VectorSource(df$FullTextStemmed))
+     dictionary = Corpus(VectorSource(df$FullText))
+
+     stemCompletion2 &lt;- function(y, dictionary) 
+     {
+       y = unlist(strsplit(as.character(y), " "))
+       y = y[y != ""]
+       y = stemCompletion(y, dictionary=dictionary)
+       y = paste(y, sep="", collapse=" ")
+       stripWhitespace(y)
+     }
+
+     completedText = llply(docs, stemCompletion2, dictionary=dictionary, .parallel = TRUE)
+     df$FullTextCompleted = unlist(completedText)
+     return(df)
+   }
+</code></pre>
+
+<h2>
+<a id="analyzing-bank-mentions" class="anchor" href="#analyzing-bank-mentions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Analyzing bank mentions</h2>
+
+<p>We identified which bank was mentioned in each post. We also counted the number of banks mentioned in each post. This function adds six new columns to the data frame. The first 5, for banks A-E, hold a 1 if the bank is mentioned and a 0 if it is not. The sixth is a sum of the previous five columns and is equivalent to the number of banks mentioned in the post. Most posts mention one bank.</p>
+
+<pre><code>   bankMentions = function(df)
+   {
+     df$BankA = 0
+     df$BankB = 0
+     df$BankC = 0
+     df$BankD = 0
+     df$BankE = 0
+     df$NumBanks = 0
+     for( i in 1:nrow(df))
+     {
+       if (grepl("BankA",df$FullText[i]))  df$BankA[i] = 1
+       if (grepl("BankB",df$FullText[i]))  df$BankB[i] = 1
+       if (grepl("BankC",df$FullText[i]))  df$BankC[i] = 1
+       if (grepl("BankD",df$FullText[i]))  df$BankD[i] = 1
+       if (grepl("banke",df$FullText[i]))  df$BankE[i] = 1
+       df$NumBanks[i] = df$BankA[i] + df$BankB[i] + df$BankC[i] + df$BankD[i] + df$BankE[i]
+     }
+     return(df)
+   }
+</code></pre>
+
+<h2>
+<a id="sentiment-analysis" class="anchor" href="#sentiment-analysis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Sentiment Analysis</h2>
+
+<p>sentiment score vs sentiment density</p>
+
+<h1>
+<a id="exploratory-data-analysis" class="anchor" href="#exploratory-data-analysis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exploratory Data Analysis</h1>
+
+<p>Document-term matrix, word frequencies, clustering</p>
+
+<h2>
+<a id="plot-a-bar-graph" class="anchor" href="#plot-a-bar-graph" aria-hidden="true"><span class="octicon octicon-link"></span></a>Plot a Bar Graph</h2>
+
+<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/bar%20chart.png" alt="Bar Graph of Frequent Words"></p>
+
+<h2>
+<a id="create-a-word-cloud" class="anchor" href="#create-a-word-cloud" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create a Word Cloud</h2>
+
+<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/word%20cloud%2002.png" alt="Word Cloud of frequent words"></p>
+
+<h2>
+<a id="find-words-associated-with-each-bank" class="anchor" href="#find-words-associated-with-each-bank" aria-hidden="true"><span class="octicon octicon-link"></span></a>Find Words Associated with Each Bank</h2>
+
+<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/assocs%202.png" alt="Words highly associated with each bank"></p>
+
+<h2>
+<a id="plot-a-cluster-dendrogram" class="anchor" href="#plot-a-cluster-dendrogram" aria-hidden="true"><span class="octicon octicon-link"></span></a>Plot a Cluster Dendrogram</h2>
+
+<h1>
+<a id="classify-the-posts" class="anchor" href="#classify-the-posts" aria-hidden="true"><span class="octicon octicon-link"></span></a>Classify the Posts</h1>
+
+<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/classifier%20importance%20plot.png" alt="Important fields for classification"></p>
+
+<h1>
+<a id="results" class="anchor" href="#results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Results</h1>
+
+<h2>
+<a id="boxplot-of-sentiment-density-scores-by-topic" class="anchor" href="#boxplot-of-sentiment-density-scores-by-topic" aria-hidden="true"><span class="octicon octicon-link"></span></a>Boxplot of Sentiment Density Scores By Topic</h2>
+
+<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/boxplot.png" alt="Boxplot of Sentiment Density Scores by Topic"></p>
+
+<h2>
+<a id="average-sentiment-density-scores-by-topic" class="anchor" href="#average-sentiment-density-scores-by-topic" aria-hidden="true"><span class="octicon octicon-link"></span></a>Average Sentiment Density Scores by Topic</h2>
+
+<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/Average%20sentiment%20density%20score.png" alt="Bar Graph of Average Sentiment Density Scores by Topic"></p>
+
+<h2>
+<a id="average-sentiment-density-scores-by-topic-and-bank" class="anchor" href="#average-sentiment-density-scores-by-topic-and-bank" aria-hidden="true"><span class="octicon octicon-link"></span></a>Average Sentiment Density Scores by Topic and Bank</h2>
+
+<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/Average%20score%20by%20topic%20and%20bank.png" alt="Boxplot of Average Sentiment Density Score by Topic and Bank"></p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge"></a> is maintained by <a href="https://github.com/katiebalcewicz">katiebalcewicz</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
