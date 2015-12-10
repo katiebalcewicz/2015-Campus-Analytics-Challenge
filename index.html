@@ -229,13 +229,13 @@ wf &lt;- data.frame(word=names(freq), freq=freq)
 <h2>
 <a id="plot-a-bar-graph" class="anchor" href="#plot-a-bar-graph" aria-hidden="true"><span class="octicon octicon-link"></span></a>Plot a Bar Graph</h2>
 
-<p>We created a bar graph of the words occurring more than 6000 times
+<p>We created a bar graph of the words occurring more than 6000 times.
 <img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/bar%20chart.png" alt="Bar Graph of Frequent Words"></p>
 
 <h2>
 <a id="create-a-word-cloud" class="anchor" href="#create-a-word-cloud" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create a Word Cloud</h2>
 
-<p>We created a word cloud of the 60 most frequent words
+<p>We created a word cloud of the 60 most frequent words.
 <img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/word%20cloud%2002.png" alt="Word Cloud of frequent words"></p>
 
 <h2>
@@ -247,8 +247,12 @@ wf &lt;- data.frame(word=names(freq), freq=freq)
 <h1>
 <a id="classify-the-posts" class="anchor" href="#classify-the-posts" aria-hidden="true"><span class="octicon octicon-link"></span></a>Classify the Posts</h1>
 
+<p>Based on the frequent words found in our exploratory data analysis, we manually identified four topics: Customer Service, Bank Services, Public Relations, and Nonsense. We pulled a random subset of 600 posts and manually labeled each one with the topic we identified. The following code demonstrates how we developed a Random Forest Classifier that we used to label the rest of the posts in the dataset.</p>
+
 <h2>
 <a id="import-the-training-dataset" class="anchor" href="#import-the-training-dataset" aria-hidden="true"><span class="octicon octicon-link"></span></a>Import the training dataset</h2>
+
+<p>We imported the training data set that was manually labeled by topic. We applied the same cleaning and structuring that we used for the main dataset. We then created a non-sparse Document Term Matrix to identify which posts held which words. We converted this back to a data frame so that we could use the classifier on it. We added three columns to the data frame that were also used in the classification: MediaType, very.pos, and very.neg. Finally we added the topic so that the classifier could be trained to identify it.</p>
 
 <pre><code>train = read.csv("train.csv")
 train = createDataFrame(train)
@@ -265,6 +269,8 @@ terms$Topic = train$Topic
 <h2>
 <a id="split-the-training-dataset-for-cross-validation" class="anchor" href="#split-the-training-dataset-for-cross-validation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Split the training dataset for cross validation</h2>
 
+<p>We used the holdout method of cross-validation to estimate the accuracy of our classifier. Our holdout set accounted for about 1/3 of the data. Using a Random Forest classifier, the accuracy comes out to about 78%. We also tested a CART decision tree created using rpart and a Naive Bayes classifier, but both had worse accuracy.</p>
+
 <pre><code>terms.train = droplevels(terms[c(1:399),])
 terms.test = droplevels(terms[c(400:nrow(terms)),])
 classifier = randomForest(Topic ~ ., data = terms.train)
@@ -274,18 +280,21 @@ terms.test$Accuracy = as.numeric(terms.test$Topic == terms.test$Prediction)
 accuracy = sum(terms.test$Accuracy)/nrow(terms.test)
 </code></pre>
 
-<p>The accuracy comes out to about 77%, higher than  either CART or Naive Bayes.</p>
-
 <h2>
 <a id="build-the-random-forest-model" class="anchor" href="#build-the-random-forest-model" aria-hidden="true"><span class="octicon octicon-link"></span></a>Build the Random Forest Model</h2>
+
+<p>A random forest classifier is essentially a set of many decision trees whose results are averaged to decide the classification. In this case, our random forest has 500 trees.</p>
 
 <pre><code>classifier = randomForest(Topic ~ ., data = terms)
 </code></pre>
 
-<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/classifier%20importance%20plot.png" alt="Important fields for classification"></p>
+<p>Although the classifier cannot be easily visualized, since it has so many trees, we can view which fields were important in the classification.
+<img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/classifier%20importance%20plot.png" alt="Important fields for classification"></p>
 
 <h2>
 <a id="create-the-test-data-frame-for-the-classifier" class="anchor" href="#create-the-test-data-frame-for-the-classifier" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create the test data frame for the classifier</h2>
+
+<p>To create the testing data frame, we used the same approach as for creating the training data frame. We created a non-sparse Document Term Matrix, converted back to a data frame, and added the additional fields of MediaType, very.pos, and very.neg.</p>
 
 <pre><code>test.terms = as.data.frame(as.matrix(dtm.sparse))
 test.terms$MediaType = df$MediaType
@@ -296,6 +305,8 @@ test.terms$very.neg = df$very.neg
 <h2>
 <a id="apply-the-classifier-to-the-test-data-frame" class="anchor" href="#apply-the-classifier-to-the-test-data-frame" aria-hidden="true"><span class="octicon octicon-link"></span></a>Apply the classifier to the test data frame</h2>
 
+<p>We applied the classifier to the test data frame and put the results in the main data frame in a column called <code>Topic</code>.</p>
+
 <pre><code>prediction = predict(classifier, test.terms)
 df$Topic = prediction
 </code></pre>
@@ -303,18 +314,26 @@ df$Topic = prediction
 <h1>
 <a id="results" class="anchor" href="#results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Results</h1>
 
+<p>The final data frame has ____ columns in addition to the original 6. Based on these columns, we were able to create several graphs from which we drew conclusions about the data.</p>
+
 <h2>
 <a id="boxplot-of-sentiment-density-scores-by-topic" class="anchor" href="#boxplot-of-sentiment-density-scores-by-topic" aria-hidden="true"><span class="octicon octicon-link"></span></a>Boxplot of Sentiment Density Scores By Topic</h2>
+
+<p>We created a boxplot that plotted Sentiment Density Scores by topic. From this you can see that nonsense posts made up the majority of all posts and have the greatest spread of sentiment.</p>
 
 <p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/boxplot.png" alt="Boxplot of Sentiment Density Scores by Topic"></p>
 
 <h2>
 <a id="average-sentiment-density-scores-by-topic" class="anchor" href="#average-sentiment-density-scores-by-topic" aria-hidden="true"><span class="octicon octicon-link"></span></a>Average Sentiment Density Scores by Topic</h2>
 
+<p>We next compared the average sentiment density scores by topic. The nonsense posts provide a baseline sentiment score against which we can compare the other topics. Across all posts, scores for bank services average negative and scores for customer service and public relations average positive. The takeaway is that customers have generally negative interactions with banking services, but banks appear to be able to compensate for these issues with generally positive interactions with public relations and customer service. Banks should focus on improving their Bank Services as listed above.</p>
+
 <p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/Average%20sentiment%20density%20score.png" alt="Bar Graph of Average Sentiment Density Scores by Topic"></p>
 
 <h2>
 <a id="average-sentiment-density-scores-by-topic-and-bank" class="anchor" href="#average-sentiment-density-scores-by-topic-and-bank" aria-hidden="true"><span class="octicon octicon-link"></span></a>Average Sentiment Density Scores by Topic and Bank</h2>
+
+<p>We finally separated posts by bank and computed the average sentiment density scores by topic and bank. Our graph shows that sentiment scores varied in magnitude and direction by bank for each topic. For example, Bank B had the most positive sentiments for customer service and public relations, but the most negative sentiment for bank services. It is possible that Bank B is forced to compensate for poor banking services with more customer service and public relations. This information is useful for individual banks to see how their services compare to their competitors. </p>
 
 <p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/Average%20score%20by%20topic%20and%20bank.png" alt="Boxplot of Average Sentiment Density Score by Topic and Bank"></p>
 
