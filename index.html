@@ -1,37 +1,25 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Wells Fargo 2015 Campus Analytics Challenge : ">
-
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Wells Fargo 2015 Campus Analytics Challenge</title>
+    <meta charset="UTF-8">
+    <title>Wells Fargo 2015 Campus Analytics Challenge by katiebalcewicz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
-
   <body>
+    <section class="page-header">
+      <h1 class="project-name">Wells Fargo 2015 Campus Analytics Challenge</h1>
+      <h2 class="project-tagline"></h2>
+      <a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge" class="btn">View on GitHub</a>
+      <a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge">View on GitHub</a>
-
-          <h1 id="project_title">Wells Fargo 2015 Campus Analytics Challenge</h1>
-          <h2 id="project_tagline"></h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <p>For the 2015 Wells Fargo Campus Analytics Challenge, students were asked to analyze a set of 220,377 anonymized social media posts to gain new insights into how customers discuss banking topics. More information about the challenge can be found on <a href="https://www.mindsumo.com/contests/wells-fargo">MindSumo</a>. For our solution, we used the R programming language to explore the data, classify the posts into categories, and analyze the sentiment of each post. The code and the other materials used in the solution can be found at <a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge">github.com/katiebalcewicz/2015-Campus-Analytics-Challenge</a>.  </p>
+    <section class="main-content">
+      <p>For the 2015 Wells Fargo Campus Analytics Challenge, students were asked to analyze a set of 220,377 anonymized social media posts to gain new insights into how customers discuss banking topics. More information about the challenge can be found on <a href="https://www.mindsumo.com/contests/wells-fargo">MindSumo</a>. For our solution, we used the R programming language to explore the data, classify the posts into categories, and analyze the sentiment of each post. The code and the other materials used in the solution can be found at <a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge">github.com/katiebalcewicz/2015-Campus-Analytics-Challenge</a>.  </p>
 
 <h1>
 <a id="structuring-the-data" class="anchor" href="#structuring-the-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Structuring the Data</h1>
@@ -51,9 +39,9 @@ df = read.table('dataset.txt',sep="|",header=T)
 <p>In order to convert the data into a usable, structured format, we added columns to the data frame containing cleaned text, bank mentions, and sentiment scores.</p>
 
 <h2>
-<a id="cleaning-the-data" class="anchor" href="#cleaning-the-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cleaning the Data</h2>
+<a id="cleaning-the-text" class="anchor" href="#cleaning-the-text" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cleaning the Text</h2>
 
-<p>The first step in structuring the data was cleaning it so that it could be analyzed. </p>
+<p>The first step in structuring the data was cleaning the raw text so that it could be more easily analyzed.</p>
 
 <h3>
 <a id="removing-non-ascii-characters" class="anchor" href="#removing-non-ascii-characters" aria-hidden="true"><span class="octicon octicon-link"></span></a>Removing non-ASCII Characters</h3>
@@ -70,7 +58,7 @@ df = read.table('dataset.txt',sep="|",header=T)
 </code></pre>
 
 <h3>
-<a id="cleaning-the-text" class="anchor" href="#cleaning-the-text" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cleaning the Text</h3>
+<a id="cleaning-the-text-1" class="anchor" href="#cleaning-the-text-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cleaning the Text</h3>
 
 <p>We made several other modifications to the text so that it was easier for us to analyze. These include:</p>
 
@@ -156,7 +144,7 @@ df = read.table('dataset.txt',sep="|",header=T)
 <h2>
 <a id="analyzing-bank-mentions" class="anchor" href="#analyzing-bank-mentions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Analyzing bank mentions</h2>
 
-<p>We identified which bank was mentioned in each post. We also counted the number of banks mentioned in each post. This function adds six new columns to the data frame. The first 5, for banks A-E, hold a 1 if the bank is mentioned and a 0 if it is not. The sixth is a sum of the previous five columns and is equivalent to the number of banks mentioned in the post. Most posts mention one bank.</p>
+<p>The next step to structuring the data was separating it by bank. We identified which bank was mentioned in each post. We also counted the number of banks mentioned in each post. This function adds six new columns to the data frame. The first 5, for banks A-E, hold a 1 if the bank is mentioned and a 0 if it is not. The sixth is a sum of the previous five columns and is equivalent to the number of banks mentioned in the post. Most posts mention one bank.</p>
 
 <pre><code>bankMentions = function(df)
 {
@@ -182,7 +170,7 @@ df = read.table('dataset.txt',sep="|",header=T)
 <h2>
 <a id="sentiment-analysis" class="anchor" href="#sentiment-analysis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Sentiment Analysis</h2>
 
-<p>We assigned each post a score based on the number of positive and negative words that it contained. We began by importing lists of positive words and negative words from text files. Then, for each post, we counted the number of positive word matches and negative words matches. The number of positive matches minus the number of negative matches equals the sentiment score. This is added to the data frame in a column called <code>SentimentScore</code>. However, we found that this was skewed towards extremes for posts with more words (i.e. facebook posts). In order to normalize the sentiment score, we created an additional column called <code>SentimentDensityScore</code> that was calculated by dividing the sentiment score by the number of words in the post. We also added two columns called <code>very.pos</code> and <code>very.neg</code> which contain 1 if the sentiment score is greater than 2 or less than -2, respectively, 0 otherwise. The function below applies the above procedure using the <code>plyr</code> package.</p>
+<p>Our third step for structuring the data was to determine whether each post was positive or negative. We assigned each post a score based on the number of positive and negative words that it contained. We began by importing lists of positive words and negative words from text files. Then, for each post, we counted the number of positive word matches and negative words matches. The number of positive matches minus the number of negative matches equals the sentiment score. This is added to the data frame in a column called <code>SentimentScore</code>. However, we found that this was skewed towards extremes for posts with more words (i.e. facebook posts). In order to normalize the sentiment score, we created an additional column called <code>SentimentDensityScore</code> that was calculated by dividing the sentiment score by the number of words in the post. We also added two columns called <code>very.pos</code> and <code>very.neg</code> which contain 1 if the sentiment score is greater than 2 or less than -2, respectively, 0 otherwise. The function below applies the above procedure using the <code>plyr</code> package.</p>
 
 <pre><code>sentimentAnalysis = function(df)
 {
@@ -223,22 +211,38 @@ df = read.table('dataset.txt',sep="|",header=T)
 <h1>
 <a id="exploratory-data-analysis" class="anchor" href="#exploratory-data-analysis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exploratory Data Analysis</h1>
 
-<p>Document-term matrix, word frequencies, clustering</p>
+<p>Once the data was cleaned up, we were able to begin our initial exploratory analysis. We began by creating a Document Term Matrix, which contained 95109 terms. Removing the terms with greater than 99.9% sparsity left us with a much more manageable matrix of only 1323 terms. Since the matrix was so large (220377 rows), we converted it into a Simple Triplet Matrix so that we could perform computations on it.</p>
+
+<pre><code>docs = Corpus(VectorSource(df$FullTextClean))
+dtm = DocumentTermMatrix(docs)   
+dtm.sparse = dtms &lt;- removeSparseTerms(dtm, 0.999)
+dtm.sparse.simple = as.simple_triplet_matrix(dtm.sparse) 
+</code></pre>
+
+<p>We computed the word frequencies by summing the entries of each column and sorting the list from most to least occurrences. We removed the first nine most frequent words, which included the name of each bank and the words that were used by the competition organizers to anonymize the posts ("name", "internet", "twit_hndl", and "name_resp"), because they occurred much more often than any other words.</p>
+
+<pre><code>freq &lt;- sort(col_sums(dtm.sparse.simple), decreasing=TRUE)   
+freq = freq[-c(1:9)]
+wf &lt;- data.frame(word=names(freq), freq=freq)  
+</code></pre>
 
 <h2>
 <a id="plot-a-bar-graph" class="anchor" href="#plot-a-bar-graph" aria-hidden="true"><span class="octicon octicon-link"></span></a>Plot a Bar Graph</h2>
 
-<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/bar%20chart.png" alt="Bar Graph of Frequent Words"></p>
+<p>We created a bar graph of the words occurring more than 6000 times
+<img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/bar%20chart.png" alt="Bar Graph of Frequent Words"></p>
 
 <h2>
 <a id="create-a-word-cloud" class="anchor" href="#create-a-word-cloud" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create a Word Cloud</h2>
 
-<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/word%20cloud%2002.png" alt="Word Cloud of frequent words"></p>
+<p>We created a word cloud of the 60 most frequent words
+<img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/word%20cloud%2002.png" alt="Word Cloud of frequent words"></p>
 
 <h2>
 <a id="find-words-associated-with-each-bank" class="anchor" href="#find-words-associated-with-each-bank" aria-hidden="true"><span class="octicon octicon-link"></span></a>Find Words Associated with Each Bank</h2>
 
-<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/assocs%202.png" alt="Words highly associated with each bank"></p>
+<p>Using the <code>findAssocs</code> function, we identified words that are highly correlated with the mention of each bank name. Notice that BankA and BankB are both frequently mentioned in association with buildings and sporting events that they sponsor. This easily allows us to identify the name of the banks. For example, try googling "center arena Philadelphia". 
+<img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/assocs%202.png" alt="Words highly associated with each bank"></p>
 
 <h1>
 <a id="classify-the-posts" class="anchor" href="#classify-the-posts" aria-hidden="true"><span class="octicon octicon-link"></span></a>Classify the Posts</h1>
@@ -313,18 +317,15 @@ df$Topic = prediction
 <a id="average-sentiment-density-scores-by-topic-and-bank" class="anchor" href="#average-sentiment-density-scores-by-topic-and-bank" aria-hidden="true"><span class="octicon octicon-link"></span></a>Average Sentiment Density Scores by Topic and Bank</h2>
 
 <p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/Average%20score%20by%20topic%20and%20bank.png" alt="Boxplot of Average Sentiment Density Score by Topic and Bank"></p>
-      </section>
-    </div>
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Wells Fargo 2015 Campus Analytics Challenge maintained by <a href="https://github.com/katiebalcewicz">katiebalcewicz</a></p>
-        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/katiebalcewicz/2015-Campus-Analytics-Challenge">Wells Fargo 2015 Campus Analytics Challenge</a> is maintained by <a href="https://github.com/katiebalcewicz">katiebalcewicz</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
-    </div>
 
-    
+    </section>
 
+  
   </body>
 </html>
