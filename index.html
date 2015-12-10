@@ -288,8 +288,9 @@ accuracy = sum(terms.test$Accuracy)/nrow(terms.test)
 <pre><code>classifier = randomForest(Topic ~ ., data = terms)
 </code></pre>
 
-<p>Although the classifier cannot be easily visualized, since it has so many trees, we can view which fields were important in the classification.
-<img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/classifier%20importance%20plot.png" alt="Important fields for classification"></p>
+<p>Although the classifier cannot be easily visualized, since it has so many trees, we can view which fields were important in the classification.</p>
+
+<p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/classifier%20importance%20plot.png" alt="Important fields for classification"></p>
 
 <h2>
 <a id="create-the-test-data-frame-for-the-classifier" class="anchor" href="#create-the-test-data-frame-for-the-classifier" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create the test data frame for the classifier</h2>
@@ -314,7 +315,7 @@ df$Topic = prediction
 <h1>
 <a id="results" class="anchor" href="#results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Results</h1>
 
-<p>The final data frame has ____ columns in addition to the original 6. Based on these columns, we were able to create several graphs from which we drew conclusions about the data.</p>
+<p>The final data frame has 13 columns in addition to the original 6. Based on these columns, we were able to create several graphs from which we drew conclusions about the data.</p>
 
 <h2>
 <a id="boxplot-of-sentiment-density-scores-by-topic" class="anchor" href="#boxplot-of-sentiment-density-scores-by-topic" aria-hidden="true"><span class="octicon octicon-link"></span></a>Boxplot of Sentiment Density Scores By Topic</h2>
