@@ -213,7 +213,7 @@ df = read.table('dataset.txt',sep="|",header=T)
 
 <p>Once the data was cleaned up, we were able to begin our initial exploratory analysis. We began by creating a Document Term Matrix, which contained 95109 terms. Removing the terms with greater than 99.9% sparsity left us with a much more manageable matrix of only 1323 terms. Since the matrix was so large (220377 rows), we converted it into a Simple Triplet Matrix so that we could perform computations on it.</p>
 
-<pre><code>docs = Corpus(VectorSource(df$FullTextClean))
+<pre><code>docs = Corpus(VectorSource(df$FullTextStemmed))
 dtm = DocumentTermMatrix(docs)   
 dtm.sparse = dtms &lt;- removeSparseTerms(dtm, 0.999)
 dtm.sparse.simple = as.simple_triplet_matrix(dtm.sparse) 
@@ -256,7 +256,7 @@ wf &lt;- data.frame(word=names(freq), freq=freq)
 
 <pre><code>train = read.csv("train.csv")
 train = createDataFrame(train)
-docs.train = Corpus(VectorSource(train$FullTextClean))
+docs.train = Corpus(VectorSource(train$FullTextStemmed))
 dtm.train = DocumentTermMatrix(docs.train) 
 dtm.sparse.train = removeSparseTerms(dtm.train, 0.99)
 terms = as.data.frame(as.matrix(dtm.sparse.train))
