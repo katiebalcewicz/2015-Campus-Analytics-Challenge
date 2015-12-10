@@ -38,10 +38,10 @@
 
 <p>The raw data that we were given was in a pipe-delimited text file that was easily read into a data frame. </p>
 
-<pre><code>   #Use the setwd() command to set the working directory to the folder that contains the dataset
-   setwd("~/R/Wells Fargo Competition")
-   #Create a Data Frame from the text file
-   df = read.table('dataset.txt',sep="|",header=T)
+<pre><code>#Use the setwd() command to set the working directory to the folder that contains the dataset
+setwd("~/R/Wells Fargo Competition")
+#Create a Data Frame from the text file
+df = read.table('dataset.txt',sep="|",header=T)
 </code></pre>
 
 <p>The first five columns were clean and easy to analyze. The sixth column held the anonymized text of the social media post, which was very messy.</p>
@@ -60,13 +60,13 @@
 
 <p>Some functions in the R packages we used did not like non-ASCII characters. The first step was to remove them from <code>FullText</code>. We defined a function called <code>removeOffendingCharacters</code> that scans through each post and replaces non-ASCII characters with "". Calling this function removes all non-ASCII characters from the <code>FullText</code> column.</p>
 
-<pre><code>   removeOffendingCharacters = function(df)
-   {
-     df.texts.clean = as.data.frame(iconv(df$FullText, "latin1", "ASCII", sub=""))
-     colnames(df.texts.clean) = 'FullText'
-     df$FullText = df.texts.clean$FullText
-     return(df)
-   }
+<pre><code>removeOffendingCharacters = function(df)
+{
+  df.texts.clean = as.data.frame(iconv(df$FullText, "latin1", "ASCII", sub=""))
+  colnames(df.texts.clean) = 'FullText'
+  df$FullText = df.texts.clean$FullText
+  return(df)
+}
 </code></pre>
 
 <h3>
@@ -84,25 +84,25 @@
 
 <p>We again defined a function that makes these modifications. This function converts the <code>FullText</code> column into a corpus and applies several of the functions from the tm package to clean the text before converting it back into a data frame. This is then added to the main data frame in a new column called <code>FullTextClean</code>.</p>
 
-<pre><code>   cleanText = function(df)
-   {
-     require(tm)
-     docs = Corpus(VectorSource(df$FullText))
-     docs = tm_map(docs, stripWhitespace)
-     docs = tm_map(docs, tolower) 
-     docs = tm_map(docs, removeWords, stopwords("english"))  
-     docs = tm_map(docs, removeNumbers)   
-     docs = tm_map(docs, PlainTextDocument)
-     removeSomePunct = function(x) gsub("[^[:alnum:][:blank:]_]", "", x)
-     docs = tm_map(docs, content_transformer(removeSomePunct))
-     docs = tm_map(docs, stripWhitespace)  
-     docs = tm_map(docs, PlainTextDocument)
+<pre><code>cleanText = function(df)
+{
+  require(tm)
+  docs = Corpus(VectorSource(df$FullText))
+  docs = tm_map(docs, stripWhitespace)
+  docs = tm_map(docs, tolower) 
+  docs = tm_map(docs, removeWords, stopwords("english"))  
+  docs = tm_map(docs, removeNumbers)   
+  docs = tm_map(docs, PlainTextDocument)
+  removeSomePunct = function(x) gsub("[^[:alnum:][:blank:]_]", "", x)
+  docs = tm_map(docs, content_transformer(removeSomePunct))
+  docs = tm_map(docs, stripWhitespace)  
+  docs = tm_map(docs, PlainTextDocument)
 
-     df.texts.cleaner = data.frame(text=unlist(sapply(docs, `[`, "content")), stringsAsFactors=F)
-     colnames(df.texts.cleaner) = 'FullText'
-     df$FullTextClean = df.texts.cleaner$FullText
-     return(df)
-   }
+  df.texts.cleaner = data.frame(text=unlist(sapply(docs, `[`, "content")), stringsAsFactors=F)
+  colnames(df.texts.cleaner) = 'FullText'
+  df$FullTextClean = df.texts.cleaner$FullText
+  return(df)
+}
 </code></pre>
 
 <h3>
@@ -110,18 +110,18 @@
 
 <p>"Stemming" is a process by which all words that have the same stem (such as "analyze", "analyzed", and "analyzing") are all converted to the same stem ("analyz"). This allows us to treat each of these words as the same when we analyze the data. We defined a function that applies this process to the <code>FullTextClean</code> column and adds the results to the main data frame in a new column called <code>FullTextStemmed</code>.</p>
 
-<pre><code>   stemText = function(df)
-   {
-     require(tm)
-     require(SnowballC)
-     docs = Corpus(VectorSource(df$FullTextClean))
-     docs = tm_map(docs, stemDocument)
-     docs = tm_map(docs, PlainTextDocument)
-     df.texts.cleaner = data.frame(text=unlist(sapply(docs, `[`, "content")), stringsAsFactors=F)
-     colnames(df.texts.cleaner) = 'FullText'
-     df$FullTextStemmed = df.texts.cleaner$FullText
-     return(df)
-   }
+<pre><code>stemText = function(df)
+{
+  require(tm)
+  require(SnowballC)
+  docs = Corpus(VectorSource(df$FullTextClean))
+  docs = tm_map(docs, stemDocument)
+  docs = tm_map(docs, PlainTextDocument)
+  df.texts.cleaner = data.frame(text=unlist(sapply(docs, `[`, "content")), stringsAsFactors=F)
+  colnames(df.texts.cleaner) = 'FullText'
+  df$FullTextStemmed = df.texts.cleaner$FullText
+  return(df)
+}
 </code></pre>
 
 <h3>
@@ -129,28 +129,28 @@
 
 <p>Stem Completion converts the stems from the previous step ("analyz") back into a dictionary word ("analyze"). Unfortunately, this algorithm was too computationally intensive to apply to the full dataset. We designed this function to use multithreading in the hopes that we might get the chance to run the code on a computer with more cores. If you were to run this function, it would add another column to the main data frame called <code>FullTextCompleted</code>.</p>
 
-<pre><code>   stemCompleteText = function(df)
-   {
-     require(plyr)
-     require(doMC)
-     require(tm)
-     doMC::registerDoMC(cores=3) #Change the number of threads here to match your machine.
-     docs = Corpus(VectorSource(df$FullTextStemmed))
-     dictionary = Corpus(VectorSource(df$FullText))
+<pre><code>stemCompleteText = function(df)
+{
+  require(plyr)
+  require(doMC)
+  require(tm)
+  doMC::registerDoMC(cores=3) #Change the number of threads here to match your machine.
+  docs = Corpus(VectorSource(df$FullTextStemmed))
+  dictionary = Corpus(VectorSource(df$FullText))
 
-     stemCompletion2 &lt;- function(y, dictionary) 
-     {
-       y = unlist(strsplit(as.character(y), " "))
-       y = y[y != ""]
-       y = stemCompletion(y, dictionary=dictionary)
-       y = paste(y, sep="", collapse=" ")
-       stripWhitespace(y)
-     }
+  stemCompletion2 &lt;- function(y, dictionary) 
+  {
+    y = unlist(strsplit(as.character(y), " "))
+    y = y[y != ""]
+    y = stemCompletion(y, dictionary=dictionary)
+    y = paste(y, sep="", collapse=" ")
+    stripWhitespace(y)
+  }
 
-     completedText = llply(docs, stemCompletion2, dictionary=dictionary, .parallel = TRUE)
-     df$FullTextCompleted = unlist(completedText)
-     return(df)
-   }
+  completedText = llply(docs, stemCompletion2, dictionary=dictionary, .parallel = TRUE)
+  df$FullTextCompleted = unlist(completedText)
+  return(df)
+}
 </code></pre>
 
 <h2>
@@ -158,31 +158,67 @@
 
 <p>We identified which bank was mentioned in each post. We also counted the number of banks mentioned in each post. This function adds six new columns to the data frame. The first 5, for banks A-E, hold a 1 if the bank is mentioned and a 0 if it is not. The sixth is a sum of the previous five columns and is equivalent to the number of banks mentioned in the post. Most posts mention one bank.</p>
 
-<pre><code>   bankMentions = function(df)
-   {
-     df$BankA = 0
-     df$BankB = 0
-     df$BankC = 0
-     df$BankD = 0
-     df$BankE = 0
-     df$NumBanks = 0
-     for( i in 1:nrow(df))
-     {
-       if (grepl("BankA",df$FullText[i]))  df$BankA[i] = 1
-       if (grepl("BankB",df$FullText[i]))  df$BankB[i] = 1
-       if (grepl("BankC",df$FullText[i]))  df$BankC[i] = 1
-       if (grepl("BankD",df$FullText[i]))  df$BankD[i] = 1
-       if (grepl("banke",df$FullText[i]))  df$BankE[i] = 1
-       df$NumBanks[i] = df$BankA[i] + df$BankB[i] + df$BankC[i] + df$BankD[i] + df$BankE[i]
-     }
-     return(df)
-   }
+<pre><code>bankMentions = function(df)
+{
+  df$BankA = 0
+  df$BankB = 0
+  df$BankC = 0
+  df$BankD = 0
+  df$BankE = 0
+  df$NumBanks = 0
+  for( i in 1:nrow(df))
+  {
+    if (grepl("BankA",df$FullText[i]))  df$BankA[i] = 1
+    if (grepl("BankB",df$FullText[i]))  df$BankB[i] = 1
+    if (grepl("BankC",df$FullText[i]))  df$BankC[i] = 1
+    if (grepl("BankD",df$FullText[i]))  df$BankD[i] = 1
+    if (grepl("banke",df$FullText[i]))  df$BankE[i] = 1
+    df$NumBanks[i] = df$BankA[i] + df$BankB[i] + df$BankC[i] + df$BankD[i] + df$BankE[i]
+  }
+  return(df)
+}
 </code></pre>
 
 <h2>
 <a id="sentiment-analysis" class="anchor" href="#sentiment-analysis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Sentiment Analysis</h2>
 
-<p>sentiment score vs sentiment density</p>
+<p>We assigned each post a score based on the number of positive and negative words that it contained. We began by importing lists of positive words and negative words from text files. Then, for each post, we counted the number of positive word matches and negative words matches. The number of positive matches minus the number of negative matches equals the sentiment score. This is added to the data frame in a column called <code>SentimentScore</code>. However, we found that this was skewed towards extremes for posts with more words (i.e. facebook posts). In order to normalize the sentiment score, we created an additional column called <code>SentimentDensityScore</code> that was calculated by dividing the sentiment score by the number of words in the post. We also added two columns called <code>very.pos</code> and <code>very.neg</code> which contain 1 if the sentiment score is greater than 2 or less than -2, respectively, 0 otherwise. The function below applies the above procedure using the <code>plyr</code> package.</p>
+
+<pre><code>sentimentAnalysis = function(df)
+{
+  pos &lt;- scan('positive-words.txt',what='character',comment.char=';')
+  neg &lt;- scan('negative-words.txt',what='character',comment.char=';')
+  require(plyr)
+  require(stringr)
+
+  scores = laply(df$FullTextClean, function(sentence, pos.words, neg.words) {
+    sentence = as.character(sentence)
+    word.list = str_split(sentence, '\\s+')
+    words = unlist(word.list)
+    words.length = length(words)
+
+    pos.matches = match(words, pos.words)
+    neg.matches = match(words, neg.words)
+
+    pos.matches = !is.na(pos.matches)
+    neg.matches = !is.na(neg.matches)
+
+    score = sum(pos.matches) - sum(neg.matches)
+    if(words.length == 0) score.density = 0
+    else score.density = score/words.length
+    score.list = c(score, score.density)
+
+    return(score.list)
+  }, pos, neg, .progress = 'text')
+
+  scores.df = data.frame(SentimentScore=scores[,1], SentimentDensity=scores[,2])
+  df$SentimentScore = scores[,1]
+  df$SentimentDensity = scores[,2]
+  df$very.pos = as.numeric(df$SentimentScore &gt;= 2)
+  df$very.neg = as.numeric(df$SentimentDensity &lt;= -2)
+  return(df)
+}
+</code></pre>
 
 <h1>
 <a id="exploratory-data-analysis" class="anchor" href="#exploratory-data-analysis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exploratory Data Analysis</h1>
@@ -204,13 +240,61 @@
 
 <p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/assocs%202.png" alt="Words highly associated with each bank"></p>
 
-<h2>
-<a id="plot-a-cluster-dendrogram" class="anchor" href="#plot-a-cluster-dendrogram" aria-hidden="true"><span class="octicon octicon-link"></span></a>Plot a Cluster Dendrogram</h2>
-
 <h1>
 <a id="classify-the-posts" class="anchor" href="#classify-the-posts" aria-hidden="true"><span class="octicon octicon-link"></span></a>Classify the Posts</h1>
 
+<h2>
+<a id="import-the-training-dataset" class="anchor" href="#import-the-training-dataset" aria-hidden="true"><span class="octicon octicon-link"></span></a>Import the training dataset</h2>
+
+<pre><code>train = read.csv("train.csv")
+train = createDataFrame(train)
+docs.train = Corpus(VectorSource(train$FullTextClean))
+dtm.train = DocumentTermMatrix(docs.train) 
+dtm.sparse.train = removeSparseTerms(dtm.train, 0.99)
+terms = as.data.frame(as.matrix(dtm.sparse.train))
+terms$MediaType = train$MediaType
+terms$very.pos = train$very.pos
+terms$very.neg = train$very.neg
+terms$Topic = train$Topic
+</code></pre>
+
+<h2>
+<a id="split-the-training-dataset-for-cross-validation" class="anchor" href="#split-the-training-dataset-for-cross-validation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Split the training dataset for cross validation</h2>
+
+<pre><code>terms.train = droplevels(terms[c(1:399),])
+terms.test = droplevels(terms[c(400:nrow(terms)),])
+classifier = randomForest(Topic ~ ., data = terms.train)
+prediction = predict(classifier, terms.test)
+terms.test$Prediction = prediction
+terms.test$Accuracy = as.numeric(terms.test$Topic == terms.test$Prediction)
+accuracy = sum(terms.test$Accuracy)/nrow(terms.test)
+</code></pre>
+
+<p>The accuracy comes out to about 77%, higher than  either CART or Naive Bayes.</p>
+
+<h2>
+<a id="build-the-random-forest-model" class="anchor" href="#build-the-random-forest-model" aria-hidden="true"><span class="octicon octicon-link"></span></a>Build the Random Forest Model</h2>
+
+<pre><code>classifier = randomForest(Topic ~ ., data = terms)
+</code></pre>
+
 <p><img src="https://raw.githubusercontent.com/katiebalcewicz/2015-Campus-Analytics-Challenge/images/classifier%20importance%20plot.png" alt="Important fields for classification"></p>
+
+<h2>
+<a id="create-the-test-data-frame-for-the-classifier" class="anchor" href="#create-the-test-data-frame-for-the-classifier" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create the test data frame for the classifier</h2>
+
+<pre><code>test.terms = as.data.frame(as.matrix(dtm.sparse))
+test.terms$MediaType = df$MediaType
+test.terms$very.pos = df$very.pos
+test.terms$very.neg = df$very.neg
+</code></pre>
+
+<h2>
+<a id="apply-the-classifier-to-the-test-data-frame" class="anchor" href="#apply-the-classifier-to-the-test-data-frame" aria-hidden="true"><span class="octicon octicon-link"></span></a>Apply the classifier to the test data frame</h2>
+
+<pre><code>prediction = predict(classifier, test.terms)
+df$Topic = prediction
+</code></pre>
 
 <h1>
 <a id="results" class="anchor" href="#results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Results</h1>
