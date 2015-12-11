@@ -58,7 +58,7 @@ df = read.table('dataset.txt',sep="|",header=T)
 <h3>
 <a id="removing-non-ascii-characters" class="anchor" href="#removing-non-ascii-characters" aria-hidden="true"><span class="octicon octicon-link"></span></a>Removing non-ASCII Characters</h3>
 
-<p>Some functions in the R packages we used did not like non-ASCII characters. The first step was to remove them from <code>FullText</code>. We defined a function called <code>removeOffendingCharacters</code> that scans through each post and replaces non-ASCII characters with "". Calling this function removes all non-ASCII characters from the <code>FullText</code> column.</p>
+<p>Some functions in the R packages we used did not like non-ASCII characters. The first step was to remove them from <code>FullText</code>. We defined a function called <code>removeOffendingCharacters</code> that scans through each post and removes non-ASCII characters from the <code>FullText</code> column.</p>
 
 <pre><code>removeOffendingCharacters = function(df)
 {
