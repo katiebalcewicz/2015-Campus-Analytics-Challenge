@@ -77,9 +77,9 @@ df = read.table('dataset.txt',sep="|",header=T)
 <ul>
 <li>Stripping extra whitespace</li>
 <li>Converting all letters to lowercase</li>
-<li>Removing stopwords (filler words that do not contribute to the essential meaning of the sentence, such as "she", "this", and "with".
-*Removing numbers
-*Removing all punctuation except '_'</li>
+<li>Removing stopwords (filler words that do not contribute to the essential meaning of the sentence, such as "she", "this", and "with".</li>
+<li>Removing numbers</li>
+<li>Removing all punctuation except '_'</li>
 </ul>
 
 <p>We again defined a function that makes these modifications. This function converts the <code>FullText</code> column into a corpus and applies several of the functions from the tm package to clean the text before converting it back into a data frame. This is then added to the main data frame in a new column called <code>FullTextClean</code>.</p>
